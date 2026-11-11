@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## HackHub architecture
+- Access is Thapar-only: a BEFORE INSERT trigger on auth.users rejects non-@thapar.edu emails and creates the profile row — keep domain enforcement in the database, not just the UI.
+- Hackathon listings come only from publishers with open feeds (src/lib/ingest.ts), upserted by the cron route /api/public/jobs/sync-hackathons — never scrape sites that forbid it.
+- Team-match and interest notifications are created by SECURITY DEFINER triggers on team_posts/team_interests, so clients never insert notifications for other users.
+- AI calls (profile blueprint, hackathon fit) live in src/lib/hub.functions.ts behind requireSupabaseAuth; fits are cached in hackathon_fits.
