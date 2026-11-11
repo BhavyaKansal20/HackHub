@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedTeamBuilderRouteImport } from './routes/_authenticated/team-builder'
 import { Route as HackathonsIdRouteImport } from './routes/hackathons.$id'
 import { Route as ApiPublicJobsSyncHackathonsRouteImport } from './routes/api/public/jobs/sync-hackathons'
 
@@ -30,11 +32,23 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTeamBuilderRoute =
+  AuthenticatedTeamBuilderRouteImport.update({
+    id: '/team-builder',
+    path: '/team-builder',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const HackathonsIdRoute = HackathonsIdRouteImport.update({
   id: '/hackathons/$id',
   path: '/hackathons/$id',
@@ -50,14 +64,18 @@ const ApiPublicJobsSyncHackathonsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/team-builder': typeof AuthenticatedTeamBuilderRoute
   '/hackathons/$id': typeof HackathonsIdRoute
   '/api/public/jobs/sync-hackathons': typeof ApiPublicJobsSyncHackathonsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/team-builder': typeof AuthenticatedTeamBuilderRoute
   '/hackathons/$id': typeof HackathonsIdRoute
   '/api/public/jobs/sync-hackathons': typeof ApiPublicJobsSyncHackathonsRoute
 }
@@ -66,7 +84,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/team-builder': typeof AuthenticatedTeamBuilderRoute
   '/hackathons/$id': typeof HackathonsIdRoute
   '/api/public/jobs/sync-hackathons': typeof ApiPublicJobsSyncHackathonsRoute
 }
@@ -75,14 +95,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/notifications'
     | '/profile'
+    | '/team-builder'
     | '/hackathons/$id'
     | '/api/public/jobs/sync-hackathons'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/notifications'
     | '/profile'
+    | '/team-builder'
     | '/hackathons/$id'
     | '/api/public/jobs/sync-hackathons'
   id:
@@ -90,7 +114,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/notifications'
     | '/_authenticated/profile'
+    | '/_authenticated/team-builder'
     | '/hackathons/$id'
     | '/api/public/jobs/sync-hackathons'
   fileRoutesById: FileRoutesById
@@ -126,11 +152,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/team-builder': {
+      id: '/_authenticated/team-builder'
+      path: '/team-builder'
+      fullPath: '/team-builder'
+      preLoaderRoute: typeof AuthenticatedTeamBuilderRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/hackathons/$id': {
@@ -151,11 +191,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedTeamBuilderRoute: typeof AuthenticatedTeamBuilderRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedTeamBuilderRoute: AuthenticatedTeamBuilderRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
