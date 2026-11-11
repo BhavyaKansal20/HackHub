@@ -10,33 +10,44 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicJobsSyncHackathonsRouteImport } from './routes/api/public/jobs/sync-hackathons'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicJobsSyncHackathonsRoute =
+  ApiPublicJobsSyncHackathonsRouteImport.update({
+    id: '/api/public/jobs/sync-hackathons',
+    path: '/api/public/jobs/sync-hackathons',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/jobs/sync-hackathons': typeof ApiPublicJobsSyncHackathonsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/jobs/sync-hackathons': typeof ApiPublicJobsSyncHackathonsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/jobs/sync-hackathons': typeof ApiPublicJobsSyncHackathonsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/jobs/sync-hackathons'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/jobs/sync-hackathons'
+  id: '__root__' | '/' | '/api/public/jobs/sync-hackathons'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicJobsSyncHackathonsRoute: typeof ApiPublicJobsSyncHackathonsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +59,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/jobs/sync-hackathons': {
+      id: '/api/public/jobs/sync-hackathons'
+      path: '/api/public/jobs/sync-hackathons'
+      fullPath: '/api/public/jobs/sync-hackathons'
+      preLoaderRoute: typeof ApiPublicJobsSyncHackathonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicJobsSyncHackathonsRoute: ApiPublicJobsSyncHackathonsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
