@@ -37,10 +37,10 @@ const schema = z.object({
   graduating_year: z.coerce.number().int().min(2024).max(2040),
   linkedin_url: url.refine((v) => /linkedin\.com\//i.test(v), "Must be a LinkedIn link"),
   github_url: url.refine((v) => /github\.com\//i.test(v), "Must be a GitHub link"),
-  portfolio_url: z.union([url, z.literal("")]).optional(),
-  headline: z.string().trim().max(120).optional(),
-  bio: z.string().trim().max(1500).optional(),
-  experience: z.string().trim().max(3000).optional(),
+  portfolio_url: z.union([url, z.literal("")]).default(""),
+  headline: z.string().trim().max(120).default(""),
+  bio: z.string().trim().max(1500).default(""),
+  experience: z.string().trim().max(3000).default(""),
   skills: z.array(z.string().max(40)).min(3, "Add at least 3 skills"),
   interests: z.array(z.string().max(40)).max(20),
 });
@@ -78,7 +78,7 @@ function ProfilePage() {
   const save = useMutation({
     mutationFn: async () => {
       const parsed = schema.safeParse(f);
-      if (!parsed.success) throw new Error(parsed.error.issues[0].path.join(".") + ": " + parsed.error.issues[0].message);
+      if (!parsed.success) throw new Error((parsed.error.issues[0]?.path.join(".") ?? "") + ": " + (parsed.error.issues[0]?.message ?? ""));
       const { error } = await supabase.from("profiles").update({ ...parsed.data, portfolio_url: parsed.data.portfolio_url || null, completed: true, updated_at: new Date().toISOString() }).eq("id", p!.id);
       if (error) throw error;
     },
@@ -86,11 +86,11 @@ function ProfilePage() {
     onError: (e) => toast.error((e as Error).message),
   });
 
-  async function upload(file: File) {
-    if (file.size > 3e6) return toast.error("Photo must be under 3 MB");
+  async function upload(file: File): Promise<void> {
+    if (file.size > 3e6) { toast.error("Photo must be under 3 MB"); return; }
     const path = `${p!.id}/avatar-${Date.now()}.${file.name.split(".").pop()}`;
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
     setF((x) => x && { ...x, avatar_url: data!.signedUrl });
   }
@@ -151,8 +151,8 @@ function ProfilePage() {
               <Field label="University roll no."><Input value={f.roll_no} onChange={(e) => set("roll_no", e.target.value)} /></Field>
               <Field label="University email"><Input value={p.email} disabled /></Field>
               <Field label="Branch / field of study"><Input value={f.branch} onChange={(e) => set("branch", e.target.value)} placeholder="Computer Engineering" /></Field>
-              <Field label="Current year"><Input type="number" value={String(f.current_year)} onChange={(e) => set("current_year", e.target.value)} /></Field>
-              <Field label="Graduating year"><Input type="number" value={String(f.graduating_year)} onChange={(e) => set("graduating_year", e.target.value)} /></Field>
+              <Field label="Current year"><Input type="number" value={String(f.current_year)} onChange={(e) => set("current_year", e.target.value as unknown as number)} /></Field>
+              <Field label="Graduating year"><Input type="number" value={String(f.graduating_year)} onChange={(e) => set("graduating_year", e.target.value as unknown as number)} /></Field>
               <Field label="LinkedIn link"><Input value={f.linkedin_url} onChange={(e) => set("linkedin_url", e.target.value)} placeholder="https://linkedin.com/in/…" /></Field>
               <Field label="GitHub link"><Input value={f.github_url} onChange={(e) => set("github_url", e.target.value)} placeholder="https://github.com/…" /></Field>
               <Field label="Portfolio (optional)"><Input value={f.portfolio_url} onChange={(e) => set("portfolio_url", e.target.value)} /></Field>

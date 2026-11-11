@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/team-builder")({
-  validateSearch: (s: Record<string, unknown>) => ({ post: typeof s.post === "string" ? s.post : undefined }),
+  validateSearch: (s: Record<string, unknown>) => ({ post: typeof s["post"] === "string" ? (s["post"] as string) : undefined }),
   head: () => ({ meta: [
     { title: "Team Builder — HackHub" },
     { name: "description", content: "Post what your team needs and get matched with skilled Thapar teammates instantly." },
@@ -30,7 +30,7 @@ const postSchema = z.object({
   skills_needed: z.array(z.string()).min(1, "Add at least one skill"),
   roles_needed: z.array(z.string()).max(10),
   spots: z.coerce.number().int().min(1).max(10),
-  commitment: z.string().max(100).optional(),
+  commitment: z.string().max(100).default(""),
   hackathon_id: z.string().uuid().nullable(),
 });
 
@@ -93,7 +93,7 @@ function TeamBuilder() {
   );
 }
 
-function PostCard({ p, me, focused, interested, onInterest }: { p: any; me?: string; focused: boolean; interested?: any; onInterest: (m: string) => void }) {
+function PostCard({ p, me, focused, interested, onInterest }: { p: any; me: string | undefined; focused: boolean; interested: any; onInterest: (m: string) => void }) {
   const [msg, setMsg] = useState("");
   const mine = p.owner_id === me;
   return (
@@ -176,14 +176,14 @@ function ShareDialog({ interest, onClose }: { interest: any; onClose: () => void
   const { user } = useSession();
   const [pick, setPick] = useState({ email: true, phone: false, linkedin: true });
   const [phone, setPhone] = useState("");
-  async function send() {
+  async function send(): Promise<void> {
     const contact: Record<string, string> = {};
-    if (pick.email && user?.email) contact.Email = user.email;
-    if (pick.phone) { if (!/^\+?[0-9 ]{10,15}$/.test(phone)) return toast.error("Enter a valid phone number"); contact.Phone = phone; }
-    if (pick.linkedin) { const { data } = await supabase.from("profiles").select("linkedin_url").eq("id", user!.id).single(); if (data?.linkedin_url) contact.LinkedIn = data.linkedin_url; }
-    if (!Object.keys(contact).length) return toast.error("Share at least one way to reach you");
+    if (pick.email && user?.email) contact["Email"] = user.email;
+    if (pick.phone) { if (!/^\+?[0-9 ]{10,15}$/.test(phone)) { toast.error("Enter a valid phone number"); return; } contact["Phone"] = phone; }
+    if (pick.linkedin) { const { data } = await supabase.from("profiles").select("linkedin_url").eq("id", user!.id).single(); if (data?.linkedin_url) contact["LinkedIn"] = data.linkedin_url; }
+    if (!Object.keys(contact).length) { toast.error("Share at least one way to reach you"); return; }
     const { error } = await supabase.from("team_interests").update({ status: "accepted", shared_contact: contact }).eq("id", interest.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Accepted — they've been notified with your contact"); onClose();
   }
   return (
@@ -205,14 +205,14 @@ function ShareDialog({ interest, onClose }: { interest: any; onClose: () => void
   );
 }
 
-function NewPost({ open, onOpenChange, userId }: { open: boolean; onOpenChange: (o: boolean) => void; userId?: string }) {
+function NewPost({ open, onOpenChange, userId }: { open: boolean; onOpenChange: (o: boolean) => void; userId: string | undefined }) {
   const qc = useQueryClient();
   const hacks = useQuery(hackathonsQuery());
   const [f, setF] = useState({ title: "", description: "", skills_needed: [] as string[], roles_needed: [] as string[], spots: "2", commitment: "", hackathon_id: "" });
   const create = useMutation({
     mutationFn: async () => {
       const parsed = postSchema.safeParse({ ...f, hackathon_id: f.hackathon_id || null });
-      if (!parsed.success) throw new Error(parsed.error.issues[0].message);
+      if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid");
       const { error } = await supabase.from("team_posts").insert({ ...parsed.data, owner_id: userId! });
       if (error) throw error;
     },
