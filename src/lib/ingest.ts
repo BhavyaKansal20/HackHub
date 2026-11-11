@@ -48,7 +48,7 @@ export async function fetchDevfolio(): Promise<HackathonRow[]> {
         starts_at: h.starts_at ?? null, ends_at: h.ends_at ?? null, reg_ends_at: s.reg_ends_at ?? null,
         dates_label: null, prize: null, participants: h.participants_count ?? null,
         tags: (h.themes ?? []).map((t: any) => t?.theme?.name ?? t?.name).filter(Boolean),
-        description: strip(h.tagline ?? h.desc)?.slice(0, 1200) ?? null,
+        description: strip(h.tagline ?? h.desc)?.slice(0, 600) ?? null,
       });
     }
   }
