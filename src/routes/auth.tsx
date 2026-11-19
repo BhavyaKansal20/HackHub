@@ -93,7 +93,7 @@ function AuthPage() {
         <img
           src="/HackHubLogo.svg"
           alt="HackHub"
-          className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain shadow-md"
+          className="mx-auto mb-6 h-24 sm:h-28 w-auto object-contain drop-shadow-2xl"
         />
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Thapar Institute · Patiala</p>
         <h1 className="mt-2 text-5xl font-bold">Enter the <span className="text-gold-gradient">Hub</span></h1>

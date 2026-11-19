@@ -21,6 +21,11 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
+        <img
+          src="/HackHubLogo.svg"
+          alt="HackHub"
+          className="mx-auto mb-6 h-16 sm:h-20 w-auto object-contain drop-shadow-md"
+        />
         <p className="font-mono text-xs uppercase tracking-widest text-gold">404</p>
         <h1 className="mt-4 font-display text-7xl font-bold text-gold-gradient">Lost?</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
@@ -56,6 +61,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
+        <img
+          src="/HackHubLogo.svg"
+          alt="HackHub"
+          className="mx-auto mb-6 h-16 sm:h-20 w-auto object-contain drop-shadow-md"
+        />
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>

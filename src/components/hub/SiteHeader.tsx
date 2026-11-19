@@ -50,8 +50,8 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 px-4 pt-4">
         <div className="glass mx-auto flex max-w-6xl items-center gap-2 rounded-full px-4 py-2">
-          <Link to="/" className="mr-3 flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight" onClick={() => setMobileOpen(false)}>
-            <img src="/HackHubLogo.svg" alt="HackHub" className="h-8 w-8 rounded-lg object-contain shadow-sm" />
+          <Link to="/" className="mr-3 flex items-center gap-3 font-display text-2xl font-bold tracking-tight" onClick={() => setMobileOpen(false)}>
+            <img src="/HackHubLogo.svg" alt="HackHub" className="h-10 sm:h-12 w-auto object-contain shrink-0 drop-shadow-sm" />
             <span>Hack<span className="text-gold-gradient">Hub</span></span>
           </Link>
           {/* Desktop nav */}
@@ -106,6 +106,7 @@ export function SiteHeader() {
           <Link to="/" className={mobileNav} activeProps={mobileActive} activeOptions={{ exact: true }} onClick={() => setMobileOpen(false)}>Hackathons</Link>
           <Link to="/team-builder" search={{ post: undefined }} className={mobileNav} activeProps={mobileActive} onClick={() => setMobileOpen(false)}>Team Builder</Link>
           <Link to="/profile" className={mobileNav} activeProps={mobileActive} onClick={() => setMobileOpen(false)}>My Blueprint</Link>
+          <Link to="/about" className={mobileNav} activeProps={mobileActive} onClick={() => setMobileOpen(false)}>About Us</Link>
           {ready && user && (
             <Link to="/notifications" className={mobileNav} activeProps={mobileActive} onClick={() => setMobileOpen(false)}>
               Notifications{!!unread.data && <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-gradient px-1 font-mono text-[10px] text-primary-foreground">{unread.data}</span>}
