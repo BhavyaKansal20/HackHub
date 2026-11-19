@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/hub/SiteHeader";
 import { SiteFooter } from "@/components/hub/SiteFooter";
+import { NotificationBanner } from "@/components/hub/NotificationBanner";
 import { HackBotWidget } from "@/components/hub/HackBotWidget";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -169,6 +170,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <NotificationBanner />
       <SiteHeader />
       <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6">
         <Outlet />

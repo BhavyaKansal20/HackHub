@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Sparkles,
@@ -17,7 +17,7 @@ import { hackathonsQuery } from "@/lib/hackathons";
 import { HackathonCard } from "@/components/hub/HackathonCard";
 import { FlagshipEventModal } from "@/components/hub/FlagshipEventModal";
 import { useSession } from "@/lib/session";
-import { ensureHackathonNotifications } from "@/lib/notifications";
+import { ensureAllNotifications } from "@/lib/notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,7 @@ const CATEGORIES = [
 
 const MODES = ["All", "Online", "In-person"] as const;
 
-export function Index() {
+function Index() {
   const { data = [], isLoading } = useQuery(hackathonsQuery());
   const { user } = useSession();
   const blueprint = useQuery({
@@ -58,9 +58,7 @@ export function Index() {
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    if (data && data.length > 0) {
-      ensureHackathonNotifications(data);
-    }
+    ensureAllNotifications(data);
   }, [data]);
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("All");
   const [mode, setMode] = useState<(typeof MODES)[number]>("All");

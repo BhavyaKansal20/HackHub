@@ -15,19 +15,20 @@ export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const unread = useQuery({
     queryKey: ["unread", user?.id],
-    enabled: !!user,
     queryFn: async () => {
       let dbCount = 0;
-      try {
-        const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("read", false);
-        dbCount = count ?? 0;
-      } catch {
-        // Fallback to local
+      if (user) {
+        try {
+          const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("read", false);
+          dbCount = count ?? 0;
+        } catch {
+          // Fallback to local
+        }
       }
       const localUnread = getLocalNotifications().filter((n) => !n.read).length;
       return Math.max(dbCount, localUnread);
     },
-    refetchInterval: 15000,
+    refetchInterval: 10000,
   });
 
   useEffect(() => {
@@ -86,19 +87,18 @@ export function SiteHeader() {
             <Link to="/profile" className={nav} activeProps={active}>My Blueprint</Link>
           </nav>
           <div className="ml-auto flex items-center gap-2">
+            <Link to="/notifications" className="relative grid h-9 w-9 place-items-center rounded-full glass transition hover:border-gold/50" aria-label="Notifications">
+              <Bell className="h-4 w-4" />
+              {!!unread.data && unread.data > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-gradient px-1 font-mono text-[10px] font-bold text-background shadow-md">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
+                  <span className="relative">{unread.data}</span>
+                </span>
+              )}
+            </Link>
+
             {ready && user ? (
-              <>
-                <Link to="/notifications" className="relative grid h-9 w-9 place-items-center rounded-full glass transition hover:border-gold/50" aria-label="Notifications">
-                  <Bell className="h-4 w-4" />
-                  {!!unread.data && unread.data > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-gradient px-1 font-mono text-[10px] font-bold text-background shadow-md">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
-                      <span className="relative">{unread.data}</span>
-                    </span>
-                  )}
-                </Link>
-                <Button variant="glass" size="icon" onClick={signOut} aria-label="Sign out" className="hidden md:inline-flex"><LogOut /></Button>
-              </>
+              <Button variant="glass" size="icon" onClick={signOut} aria-label="Sign out" className="hidden md:inline-flex"><LogOut /></Button>
             ) : ready ? (
               <Button variant="gold" size="sm" asChild className="hidden md:inline-flex"><Link to="/auth">Sign in with Thapar ID</Link></Button>
             ) : null}

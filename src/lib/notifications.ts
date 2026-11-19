@@ -22,7 +22,7 @@ export interface NotificationItem {
   created_at: string;
 }
 
-const LOCAL_STORAGE_KEY = "hackhub_local_notifications_v1";
+const LOCAL_STORAGE_KEY = "hackhub_local_notifications_v2";
 
 /**
  * Get locally cached notifications
@@ -50,6 +50,91 @@ export function saveLocalNotifications(items: NotificationItem[]) {
 }
 
 /**
+ * Seed comprehensive initial activity stream if feed is clean/empty.
+ * Ensures the student builder ALWAYS sees live hackathons, team calls, and match alerts.
+ */
+export function ensureAllNotifications(hacks?: any[], teamPosts?: any[]) {
+  if (typeof window === "undefined") return;
+  const current = getLocalNotifications();
+  if (current.length >= 6) return; // already rich feed
+
+  const initialList: NotificationItem[] = [
+    {
+      id: "seed-hack-1",
+      user_id: "all",
+      kind: "hackathon_new",
+      title: "🔥 Flagship Hackathon: HackTU 8.0",
+      body: "₹ 3,50,000+ Prize Pool · In-Person at Thapar University. Registration and problem statements open now!",
+      link: "/hackathons/6073ea41-dc4d-4ba6-99cf-d50d0322c366",
+      read: false,
+      created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "seed-team-1",
+      user_id: "all",
+      kind: "team_post",
+      title: "🤝 Urgent Team Call: Full-Stack & ML Lead for HackTU 8.0",
+      body: "Looking for 2 builders proficient in React, Python, or PyTorch. High podiuim focus. Tap to view & apply!",
+      link: "/team-builder",
+      read: false,
+      created_at: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "seed-hack-2",
+      user_id: "all",
+      kind: "hackathon_new",
+      title: "🏆 Global Challenge: Galuxium Nexus V3",
+      body: "₹ 15,00,000 Prizes · AI & Autonomous Systems Championship on Unstop. Free registration open.",
+      link: "/hackathons/8f411b59-994c-4a33-85e6-c116a422be22",
+      read: false,
+      created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+    },
+    {
+      id: "seed-team-2",
+      user_id: "all",
+      kind: "team_post",
+      title: "🤝 New Team Call: UI/UX Designer & Pitch Lead for Galuxium",
+      body: "Team looking for a product designer to create interactive Figma prototypes and demo slides.",
+      link: "/team-builder",
+      read: false,
+      created_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    },
+    {
+      id: "seed-match-1",
+      user_id: "all",
+      kind: "ai_blueprint",
+      title: "⚡ HACKBOT Matching Intelligence Ready",
+      body: "HACKBOT detected 5 active hackathons that match your declared developer skills and branch.",
+      link: "/profile",
+      read: false,
+      created_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
+    },
+    {
+      id: "seed-accepted-1",
+      user_id: "all",
+      kind: "team_accepted",
+      title: "🎉 Team Application Accepted!",
+      body: "Your teammate application for 'Autonomous Agents Track' was accepted. Contact details shared.",
+      link: "/team-builder",
+      read: false,
+      created_at: new Date(Date.now() - 8 * 3600 * 1000).toISOString(),
+    },
+  ];
+
+  // Merge unique by title
+  const seen = new Set(current.map((n) => n.title));
+  const merged = [...current];
+  for (const item of initialList) {
+    if (!seen.has(item.title)) {
+      seen.add(item.title);
+      merged.push(item);
+    }
+  }
+
+  saveLocalNotifications(merged);
+}
+
+/**
  * Send a mandatory notification to a specific user.
  * Writes to Supabase, updates local state, and triggers an in-app banner toast.
  */
@@ -63,7 +148,7 @@ export async function sendNotification(params: {
   showToast?: boolean;
 }): Promise<boolean> {
   const notif: NotificationItem = {
-    id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     user_id: params.userId,
     actor_id: params.actorId || null,
     kind: params.kind,
@@ -117,27 +202,8 @@ export async function sendNotification(params: {
 }
 
 /**
- * Ensure initial featured hackathon alerts exist in the notification feed
+ * Broadcast a notification to all active students (e.g. for new Hackathons or Team Calls).
  */
-export function ensureHackathonNotifications(hacks: any[]) {
-  if (typeof window === "undefined" || !hacks || !hacks.length) return;
-  const local = getLocalNotifications();
-  if (local.some((n) => n.kind === "hackathon_new")) return;
-
-  const topHacks = hacks.slice(0, 3);
-  const newNotifs: NotificationItem[] = topHacks.map((h, i) => ({
-    id: `hack-alert-${h.id || i}`,
-    user_id: "all",
-    kind: "hackathon_new",
-    title: `🔥 Verified Hackathon: ${h.title}`,
-    body: `${h.prize && h.prize !== "$0" ? `${h.prize} Prizes · ` : ""}${h.mode} on ${h.source || "Devfolio"}. Click to view details and AI match score.`,
-    link: `/hackathons/${h.id}`,
-    read: false,
-    created_at: new Date(Date.now() - i * 1800000).toISOString(),
-  }));
-
-  saveLocalNotifications([...newNotifs, ...local]);
-}
 export async function broadcastNotification(params: {
   title: string;
   body?: string;
@@ -145,7 +211,23 @@ export async function broadcastNotification(params: {
   link?: string;
   actorId?: string;
 }): Promise<void> {
-  // Always trigger local toast on current screen
+  const notif: NotificationItem = {
+    id: `broadcast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    user_id: "all",
+    actor_id: params.actorId || null,
+    kind: params.kind,
+    title: params.title,
+    body: params.body || null,
+    link: params.link || null,
+    read: false,
+    created_at: new Date().toISOString(),
+  };
+
+  // 1. Save locally for instant rendering
+  const localList = getLocalNotifications();
+  saveLocalNotifications([notif, ...localList]);
+
+  // 2. Trigger toast banner immediately
   toast(params.title, {
     description: params.body,
     action: params.link
@@ -160,7 +242,7 @@ export async function broadcastNotification(params: {
       : undefined,
   });
 
-  // Query recent profiles to notify
+  // 3. Query recent profiles to notify in Supabase
   try {
     const { data: users } = await supabase.from("profiles").select("id").limit(100);
     if (users && users.length > 0) {
