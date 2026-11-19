@@ -7,3 +7,8 @@
 - [x] Notifications panel
 - [x] Auto-collect hackathons (Devpost/MLH feeds)
 - [ ] Extra sources (Unstop, Hack2Skill, LinkedIn): blocked, no open feeds
+- [ ] Launch polish: mobile navigation, overflow, metadata, favicon, footer and legal pages
+- [ ] Security hardening: upload validation, safe links, dependency updates, error handling
+- [ ] Dry run: public and signed-in flows, mobile layouts, permissions and security report
+- [ ] Legal contact: awaiting owner’s email
+- [ ] Rate limiting: awaiting approval of an ad-hoc approach; no standard backend primitive
