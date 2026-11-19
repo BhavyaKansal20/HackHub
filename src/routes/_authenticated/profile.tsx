@@ -4,11 +4,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Camera, Sparkles } from "lucide-react";
+import { Camera, Sparkles, Copy, Share2, Users, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { evaluateProfile, type Blueprint } from "@/lib/hub.functions";
 import { SKILL_SUGGESTIONS } from "@/lib/session";
 import { compressPhoto } from "@/lib/safety";
+import { ImageCropDialog } from "@/components/hub/ImageCropDialog";
 import { TagInput } from "@/components/hub/TagInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,10 @@ function ProfilePage() {
   });
   const [f, setF] = useState<Form | null>(null);
   const [editing, setEditing] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [copiedRef, setCopiedRef] = useState(false);
+
   useEffect(() => {
     if (!p) return;
     setF({ persona: (p.persona ?? "student") as Form["persona"], full_name: p.full_name ?? "", gender: p.gender ?? "", avatar_url: p.avatar_url ?? "",
@@ -87,17 +92,31 @@ function ProfilePage() {
     onError: (e) => toast.error((e as Error).message),
   });
 
-  async function upload(file: File): Promise<void> {
+  function handleFileSelected(file: File) {
+    if (file.size > 15e6) {
+      toast.error("Photo must be under 15 MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === "string") {
+        setCropImageSrc(e.target.result);
+        setCropModalOpen(true);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleCropConfirmed(croppedBlob: Blob): Promise<void> {
     try {
-      if (file.size > 3e6) { toast.error("Photo must be under 3 MB"); return; }
-      toast.info("Validating and compressing photo…");
-      const compressedBlob = await compressPhoto(file);
+      toast.info("Optimizing and saving photo…");
+      const compressedBlob = await compressPhoto(croppedBlob);
       const path = `${p!.id}/avatar-${Date.now()}.webp`;
       const { error } = await supabase.storage.from("avatars").upload(path, compressedBlob, { contentType: "image/webp", upsert: true });
       if (error) { toast.error(error.message); return; }
       const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
       setF((x) => x && { ...x, avatar_url: data!.signedUrl });
-      toast.success("Photo uploaded and optimized!");
+      toast.success("Profile photo updated successfully!");
     } catch (err) {
       toast.error((err as Error).message || "Failed to upload photo");
     }
@@ -106,6 +125,16 @@ function ProfilePage() {
   if (isLoading || !f || !p) return <div className="glass mt-8 h-96 animate-pulse rounded-[2rem]" />;
   const bp = p.ai_blueprint as Blueprint | null;
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF({ ...f, [k]: v });
+
+  const refCode = p.roll_no ? `THAPAR-${p.roll_no.replace(/\s+/g, "").toUpperCase()}` : `HACK-${p.id.slice(0, 6).toUpperCase()}`;
+  const inviteLink = typeof window !== "undefined" ? `${window.location.origin}/auth?ref=${refCode}` : `https://hackhub.thapar.edu/auth?ref=${refCode}`;
+
+  const copyReferral = () => {
+    navigator.clipboard.writeText(inviteLink);
+    setCopiedRef(true);
+    toast.success("Referral invite link copied to clipboard!");
+    setTimeout(() => setCopiedRef(false), 2500);
+  };
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -116,6 +145,39 @@ function ProfilePage() {
             <h1 className="text-4xl font-bold">{p.completed ? "Your profile" : "Complete your profile"}</h1>
           </div>
           {p.completed && !editing && <Button variant="glass" onClick={() => setEditing(true)}>Edit</Button>}
+        </div>
+
+        {/* Quick Referral Banner in profile */}
+        <div className="clay mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl p-5 border border-gold/30">
+          <div>
+            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-gold">
+              <Users className="h-4 w-4" /> Your Referral Code
+            </p>
+            <div className="mt-1 flex items-center gap-2 font-mono text-lg font-bold tracking-wider text-foreground">
+              <span>{refCode}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">Invite teammates to join HackHub and unlock team matching.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="gold" size="sm" onClick={copyReferral} className="gap-1.5">
+              {copiedRef ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copiedRef ? "Copied" : "Copy Link"}
+            </Button>
+            <Button
+              variant="glass"
+              size="sm"
+              asChild
+            >
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Sign up on HackHub with my Thapar referral code ${refCode} to discover hackathons and join our team: ${inviteLink}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="gap-1.5"
+              >
+                <Share2 className="h-4 w-4" /> Share
+              </a>
+            </Button>
+          </div>
         </div>
 
         {!editing ? (
@@ -142,11 +204,24 @@ function ProfilePage() {
               </div>
             </div>
             <div className="flex items-center gap-5">
-              <label className="clay relative grid h-28 w-28 cursor-pointer place-items-center overflow-hidden rounded-[2rem]">
+              <label className="clay relative grid h-28 w-28 cursor-pointer place-items-center overflow-hidden rounded-[2rem] border border-glass-border hover:border-gold/60 transition">
                 {f.avatar_url ? <img src={f.avatar_url} alt="" className="h-full w-full object-cover" /> : <Camera className="text-gold" />}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+                <input
+                  type="file"
+                  accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.svg,.avif,.bmp,.tiff"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      handleFileSelected(e.target.files[0]);
+                      e.target.value = ""; // reset input
+                    }
+                  }}
+                />
               </label>
-              <p className="text-sm text-muted-foreground">Profile photo (required). Tap to upload.</p>
+              <div>
+                <p className="text-sm font-medium">Profile photo (Tap to crop & fit)</p>
+                <p className="text-xs text-muted-foreground">Supports PNG, JPEG, JPG, WebP, GIF, SVG, AVIF</p>
+              </div>
             </div>
             <Grid>
               <Field label="Full name"><Input value={f.full_name} onChange={(e) => set("full_name", e.target.value)} /></Field>
@@ -199,6 +274,14 @@ function ProfilePage() {
           <p className="mt-4 text-muted-foreground">Save your profile and HackHub's AI will read your GitHub, skills and experience to build your blueprint and pick hackathons for you.</p>
         )}
       </aside>
+
+      {/* Interactive Photo Crop & Fit Dialog */}
+      <ImageCropDialog
+        open={cropModalOpen}
+        onOpenChange={setCropModalOpen}
+        imageSrc={cropImageSrc}
+        onConfirm={handleCropConfirmed}
+      />
     </div>
   );
 }

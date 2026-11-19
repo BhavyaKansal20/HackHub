@@ -20,9 +20,10 @@ function AuthPage() {
   const { user, ready } = useSession();
   const navigate = useNavigate();
   const [err, setErr] = useState<string | null>(null);
+  const [referredBy, setReferredBy] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Check URL parameters for any OAuth redirect errors from Supabase
+  // Check URL parameters for any OAuth redirect errors from Supabase or referral code
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -34,6 +35,14 @@ function AuthPage() {
           ? "Database error: Please run the fix SQL in Supabase SQL editor to link the user profile trigger."
           : decoded,
       );
+    }
+
+    const ref = params.get("ref");
+    if (ref) {
+      setReferredBy(ref);
+      try {
+        localStorage.setItem("hackhub_referred_by", ref);
+      } catch {}
     }
   }, []);
 
@@ -84,6 +93,11 @@ function AuthPage() {
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Thapar Institute · Patiala</p>
         <h1 className="mt-4 text-5xl font-bold">Enter the <span className="text-gold-gradient">Hub</span></h1>
         <p className="mt-3 text-muted-foreground">Restricted to verified <span className="font-mono text-foreground">@thapar.edu</span> accounts.</p>
+        {referredBy && (
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-mono text-gold">
+            🎁 Referred by friend: <span className="font-bold underline">{referredBy}</span>
+          </div>
+        )}
         <button
           type="button" onClick={google} disabled={busy}
           className="mx-auto mt-8 flex w-full items-center justify-center gap-[10px] rounded-full border border-[#747775] bg-[#FFFFFF] px-3 py-3 text-[14px] font-medium leading-5 text-[#1F1F1F] disabled:opacity-60"
