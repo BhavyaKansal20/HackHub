@@ -21,9 +21,19 @@ import {
   FileText,
   Star,
   ExternalLink,
+  Bot,
+  Copy,
+  Check,
+  Lightbulb,
 } from "lucide-react";
 import { hackathonQuery, datesLabel, deadlineLabel } from "@/lib/hackathons";
-import { getHackathonFit, type Fit } from "@/lib/hub.functions";
+import {
+  getHackathonFit,
+  generateHackathonIdeas,
+  draftODSlip,
+  type Fit,
+  type HackathonIdeaItem,
+} from "@/lib/hub.functions";
 import { useSession } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -40,7 +50,7 @@ export const Route = createFileRoute("/hackathons/$id")({
   component: Detail,
 });
 
-type TabType = "overview" | "timeline" | "details" | "prizes" | "reviews" | "faqs";
+type TabType = "overview" | "timeline" | "details" | "prizes" | "reviews" | "faqs" | "ideation";
 
 function Detail() {
   const { id } = Route.useParams();
@@ -48,10 +58,44 @@ function Detail() {
   const { user } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [saved, setSaved] = useState(false);
+  const [ideas, setIdeas] = useState<HackathonIdeaItem[]>([]);
+  const [odLetter, setOdLetter] = useState<string>("");
+  const [copiedOd, setCopiedOd] = useState(false);
 
   const fitFn = useServerFn(getHackathonFit);
   const fit = useMutation({
     mutationFn: (refresh: boolean) => fitFn({ data: { hackathonId: id, refresh } }) as Promise<Fit>,
+  });
+
+  const ideasFn = useServerFn(generateHackathonIdeas);
+  const ideasMutation = useMutation({
+    mutationFn: async () => {
+      const res = await ideasFn({ data: { hackathonId: id } });
+      setIdeas(res);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("HACKBOT generated 3 winning system architectures!");
+    },
+  });
+
+  const odFn = useServerFn(draftODSlip);
+  const odMutation = useMutation({
+    mutationFn: async () => {
+      const res = await odFn({
+        data: {
+          hackathonId: id,
+          hackathonTitle: h?.title,
+          studentName: user?.email?.split("@")[0] || "Student Developer",
+          dates: datesLabel(h) || "Upcoming Hackathon Round",
+        },
+      });
+      setOdLetter(res);
+      return res;
+    },
+    onSuccess: () => {
+      toast.success("TIET On-Duty (OD) application drafted!");
+    },
   });
 
   useEffect(() => {
@@ -118,6 +162,7 @@ function Detail() {
       <div className="glass sticky top-[72px] z-30 flex items-center gap-1 overflow-x-auto rounded-full px-3 py-1.5 backdrop-blur-2xl border border-glass-border/80">
         {[
           { id: "overview", label: "Overview", icon: Home },
+          { id: "ideation", label: "HACKBOT AI Architect", icon: Sparkles },
           { id: "timeline", label: "Stages & Timeline", icon: Calendar },
           { id: "details", label: "Details", icon: FileText },
           { id: "prizes", label: "Prizes", icon: Trophy },
@@ -401,6 +446,134 @@ function Detail() {
               </div>
             </section>
           )}
+
+          {/* TAB 5: HACKBOT AI Architect & OD Drafter */}
+          {(activeTab === "ideation" || activeTab === "overview") && (
+            <div className="space-y-6">
+              {/* Ideation Section */}
+              <section className="glass rounded-[2rem] p-6 sm:p-8 space-y-6 border border-gold/30">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-gold" /> HACKBOT AI Project Architect
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Winning architectures and technical concepts engineered for {h.title}.
+                    </p>
+                  </div>
+                  <Button
+                    variant="gold"
+                    size="sm"
+                    onClick={() => ideasMutation.mutate()}
+                    disabled={ideasMutation.isPending}
+                    className="gap-1.5"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    {ideasMutation.isPending ? "Engineering..." : ideas.length ? "Re-generate Ideas" : "Brainstorm Ideas"}
+                  </Button>
+                </div>
+
+                {ideasMutation.isPending ? (
+                  <div className="space-y-4 py-8 text-center">
+                    <Bot className="h-8 w-8 text-gold animate-bounce mx-auto" />
+                    <p className="text-xs font-mono text-muted-foreground">HACKBOT is generating 3 winning project blueprints…</p>
+                  </div>
+                ) : ideas.length > 0 ? (
+                  <div className="grid gap-4 sm:grid-cols-1">
+                    {ideas.map((idea, idx) => (
+                      <div key={idx} className="clay rounded-2xl p-5 border border-glass-border/70 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="rounded-full bg-gold/15 px-2.5 py-0.5 font-mono text-[11px] font-bold text-gold">
+                            Track: {idea.track}
+                          </span>
+                          <span className="text-[10px] font-mono text-muted-foreground">Architecture #{idx + 1}</span>
+                        </div>
+                        <h3 className="text-base font-bold text-foreground">{idea.title}</h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed"><strong className="text-foreground">USP:</strong> {idea.usp}</p>
+                        <div className="rounded-xl bg-accent/40 p-3 text-xs space-y-1">
+                          <p className="text-[10px] font-mono uppercase text-muted-foreground">Data Flow & Infrastructure:</p>
+                          <p className="text-foreground font-mono text-[11px]">{idea.architecture}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {idea.stack.map((tech, ti) => (
+                            <span key={ti} className="rounded-md bg-background/80 px-2 py-0.5 font-mono text-[10px] text-gold border border-glass-border">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="clay rounded-2xl p-8 text-center space-y-3">
+                    <Lightbulb className="h-8 w-8 text-gold mx-auto" />
+                    <p className="text-sm font-semibold">Brainstorm Winning Hackathon Concepts</p>
+                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                      HACKBOT synthesizes this hackathon's tags, judging rubrics, and technical tracks to generate 3 custom system architectures.
+                    </p>
+                    <Button variant="gold" size="sm" onClick={() => ideasMutation.mutate()}>
+                      Brainstorm Architectures Now
+                    </Button>
+                  </div>
+                )}
+              </section>
+
+              {/* Official TIET On-Duty (OD) Drafter Section */}
+              <section className="glass rounded-[2rem] p-6 sm:p-8 space-y-6 border border-glass-border">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-gold" /> Official TIET On-Duty (OD) Drafter
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Formatted application for Dean of Student Affairs (DoSA) & HOD attendance exemption.
+                    </p>
+                  </div>
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() => odMutation.mutate()}
+                    disabled={odMutation.isPending}
+                    className="gap-1.5"
+                  >
+                    <FileText className="h-4 w-4 text-gold" />
+                    {odMutation.isPending ? "Drafting..." : odLetter ? "Re-draft OD Slip" : "Generate OD Slip"}
+                  </Button>
+                </div>
+
+                {odLetter ? (
+                  <div className="clay rounded-2xl p-5 border border-glass-border/70 space-y-4">
+                    <div className="flex items-center justify-between border-b border-glass-border/60 pb-3">
+                      <span className="font-mono text-xs text-emerald-400">✓ DoSA & HOD Formatted Draft</span>
+                      <Button
+                        variant="gold"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(odLetter);
+                          setCopiedOd(true);
+                          toast.success("OD application copied to clipboard!");
+                          setTimeout(() => setCopiedOd(false), 2000);
+                        }}
+                        className="h-8 text-xs gap-1.5"
+                      >
+                        {copiedOd ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                        {copiedOd ? "Copied" : "Copy OD Application"}
+                      </Button>
+                    </div>
+                    <pre className="whitespace-pre-wrap font-sans text-xs text-foreground leading-relaxed max-h-96 overflow-y-auto">
+                      {odLetter}
+                    </pre>
+                  </div>
+                ) : (
+                  <div className="clay rounded-2xl p-6 text-center space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Need attendance exemption to attend {h.title}? Click "Generate OD Slip" to create a ready-to-submit official letter.
+                    </p>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
         </div>
 
         {/* Right Sticky Sidebar (Exact copy of Unstop Image 2) */}
@@ -469,9 +642,14 @@ function Detail() {
 
           {/* AI Fit Intelligence Card */}
           <div className="glass rounded-[2rem] p-6 space-y-4 border border-gold/30">
-            <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gold font-semibold">
-              <Sparkles className="h-4 w-4" /> Your AI Fit Score
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gold font-semibold">
+                <Sparkles className="h-4 w-4" /> HACKBOT AI Fit
+              </p>
+              <span className="rounded-full bg-gold/15 px-2 py-0.5 font-mono text-[9px] font-bold text-gold">
+                LOCAL
+              </span>
+            </div>
 
             {!user ? (
               <div className="space-y-3">
@@ -498,9 +676,31 @@ function Detail() {
                 </div>
                 <p className="text-sm font-semibold text-foreground">{fit.data.verdict}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{fit.data.summary}</p>
-                <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => fit.mutate(true)}>
-                  Re-evaluate
-                </Button>
+                
+                <div className="pt-2 flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs border-gold/40 text-gold hover:bg-gold/10 gap-1.5"
+                    onClick={() => {
+                      setActiveTab("ideation");
+                      if (!ideas.length) ideasMutation.mutate();
+                    }}
+                  >
+                    <Lightbulb className="h-3.5 w-3.5" /> Brainstorm Architectures
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                    onClick={() => {
+                      setActiveTab("ideation");
+                      if (!odLetter) odMutation.mutate();
+                    }}
+                  >
+                    <FileText className="h-3.5 w-3.5 text-gold" /> Draft TIET OD Slip
+                  </Button>
+                </div>
               </div>
             ) : null}
           </div>

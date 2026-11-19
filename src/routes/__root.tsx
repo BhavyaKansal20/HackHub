@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/hub/SiteHeader";
 import { SiteFooter } from "@/components/hub/SiteFooter";
+import { HackBotWidget } from "@/components/hub/HackBotWidget";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -173,6 +174,7 @@ function RootComponent() {
         <Outlet />
       </main>
       <SiteFooter />
+      <HackBotWidget />
       <Toaster />
     </QueryClientProvider>
   );

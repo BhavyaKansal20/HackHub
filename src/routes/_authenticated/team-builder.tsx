@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, UserCheck } from "lucide-react";
+import { Plus, UserCheck, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, SKILL_SUGGESTIONS } from "@/lib/session";
 import { hackathonsQuery } from "@/lib/hackathons";
@@ -236,6 +236,21 @@ function NewPost({ open, onOpenChange, userId }: { open: boolean; onOpenChange: 
   const qc = useQueryClient();
   const hacks = useQuery(hackathonsQuery());
   const [f, setF] = useState({ title: "", description: "", skills_needed: [] as string[], roles_needed: [] as string[], spots: "2", commitment: "", hackathon_id: "" });
+
+  const draftWithAi = () => {
+    const selectedHack = hacks.data?.find((h) => h.id === f.hackathon_id);
+    const hackTitle = selectedHack ? selectedHack.title : "Upcoming Hackathon";
+    setF((prev) => ({
+      ...prev,
+      title: `Looking for Builder & Pitch Partner for ${hackTitle}`,
+      description: `We're building an end-to-end prototype for ${hackTitle}. Looking for a dedicated teammate to own frontend UI implementation, API integration, and help deliver the final demo to judges. Clear division of responsibilities and focused execution!`,
+      skills_needed: prev.skills_needed.length ? prev.skills_needed : ["React", "TypeScript", "Tailwind CSS"],
+      roles_needed: prev.roles_needed.length ? prev.roles_needed : ["Frontend", "Pitch Lead"],
+      commitment: "Hackathon duration + preliminary design sprint",
+    }));
+    toast.success("HACKBOT drafted your recruitment pitch!");
+  };
+
   const create = useMutation({
     mutationFn: async () => {
       const parsed = postSchema.safeParse({ ...f, hackathon_id: f.hackathon_id || null });
@@ -256,6 +271,16 @@ function NewPost({ open, onOpenChange, userId }: { open: boolean; onOpenChange: 
             <option value="">Which hackathon? (optional)</option>
             {hacks.data?.map((h) => <option key={h.id} value={h.id}>{h.title}</option>)}
           </select>
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Pitch & Role</span>
+            <button
+              type="button"
+              onClick={draftWithAi}
+              className="flex items-center gap-1.5 text-xs text-gold hover:underline"
+            >
+              <Sparkles className="h-3 w-3" /> Auto-draft pitch with HACKBOT
+            </button>
+          </div>
           <Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Need an ML engineer for HackTU" className="neo-inset h-10 rounded-full border-0" />
           <Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} rows={4} placeholder="What you're building, what the teammate will own…" className="neo-inset rounded-3xl border-0" />
           <div><p className="mb-1 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Skills needed</p><TagInput value={f.skills_needed} onChange={(v) => setF({ ...f, skills_needed: v })} suggestions={SKILL_SUGGESTIONS} placeholder="e.g. PyTorch" /></div>

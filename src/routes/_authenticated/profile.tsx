@@ -254,7 +254,14 @@ function ProfilePage() {
       </section>
 
       <aside className="glass h-fit rounded-[2rem] p-6 lg:sticky lg:top-24">
-        <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gold"><Sparkles className="h-4 w-4" /> AI blueprint</p>
+        <div className="flex items-center justify-between">
+          <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-gold">
+            <Sparkles className="h-4 w-4" /> HACKBOT Blueprint
+          </p>
+          <span className="rounded-full bg-gold/15 px-2 py-0.5 font-mono text-[9px] font-bold text-gold">
+            LOCAL ENGINE
+          </span>
+        </div>
         {evaluate.isPending ? (
           <div className="mt-4 space-y-3"><div className="neo-inset h-32 animate-pulse rounded-3xl" /><p className="text-sm text-muted-foreground">Reading your GitHub and skills…</p></div>
         ) : bp ? (
