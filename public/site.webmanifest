@@ -9,15 +9,20 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
+      "src": "/HackHubLogo.png",
+      "sizes": "512x512",
+      "type": "image/png"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/HackHubLogo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
     }
   ],
   "categories": ["education", "productivity"],

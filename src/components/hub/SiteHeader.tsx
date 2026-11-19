@@ -50,8 +50,9 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 px-4 pt-4">
         <div className="glass mx-auto flex max-w-6xl items-center gap-2 rounded-full px-4 py-2">
-          <Link to="/" className="mr-3 font-display text-2xl font-bold tracking-tight" onClick={() => setMobileOpen(false)}>
-            Hack<span className="text-gold-gradient">Hub</span>
+          <Link to="/" className="mr-3 flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight" onClick={() => setMobileOpen(false)}>
+            <img src="/HackHubLogo.svg" alt="HackHub" className="h-8 w-8 rounded-lg object-contain shadow-sm" />
+            <span>Hack<span className="text-gold-gradient">Hub</span></span>
           </Link>
           {/* Desktop nav */}
           <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">

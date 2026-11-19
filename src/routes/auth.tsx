@@ -90,8 +90,13 @@ function AuthPage() {
   return (
     <div className="mx-auto mt-16 max-w-md">
       <div className="glass rounded-[2rem] p-10 text-center">
+        <img
+          src="/HackHubLogo.svg"
+          alt="HackHub"
+          className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain shadow-md"
+        />
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-gold">Thapar Institute · Patiala</p>
-        <h1 className="mt-4 text-5xl font-bold">Enter the <span className="text-gold-gradient">Hub</span></h1>
+        <h1 className="mt-2 text-5xl font-bold">Enter the <span className="text-gold-gradient">Hub</span></h1>
         <p className="mt-3 text-muted-foreground">Restricted to verified <span className="font-mono text-foreground">@thapar.edu</span> accounts.</p>
         {referredBy && (
           <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-mono text-gold">
