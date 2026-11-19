@@ -127,6 +127,12 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    box-sizing: border-box;
+  }
+
+  html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -136,8 +142,38 @@
     color: var(--color-foreground);
     font-family: var(--font-serif);
     font-size: 17px;
+    overflow-x: hidden;
+    /* Minimum tap-target friendliness */
+    -webkit-tap-highlight-color: transparent;
   }
+
+  /* Ensure all interactive elements have minimum tap target size on mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Prevent images from overflowing */
+  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+
   h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
+
+  /* Mobile font size floor — prevent <14px text */
+  p, span, li, td, th, label {
+    font-size: max(14px, 1em);
+  }
+
+  /* Focus styles for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 @utility glass {
@@ -152,3 +188,33 @@
 @utility text-gold-gradient { background: var(--gradient-gold); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @utility bg-gold-gradient { background: var(--gradient-gold); }
 @utility shadow-gold { box-shadow: var(--shadow-gold); }
+
+/* Legal pages (terms, privacy) */
+.legal-page h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.legal-page p {
+  margin-bottom: 1rem;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+.legal-page a {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.legal-page a:hover {
+  opacity: 0.85;
+}
+
+/* Mobile safe — prevent text from going to screen edge */
+@media (max-width: 640px) {
+  .legal-page {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

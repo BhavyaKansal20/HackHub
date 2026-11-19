@@ -93,7 +93,25 @@ function Index() {
           {isLoading && Array.from({ length: 6 }).map((_, i) => <div key={i} className="glass h-56 animate-pulse rounded-[1.75rem]" />)}
           {list.map((h) => <HackathonCard key={h.id} h={h} recommended={recIds.has(h.id)} />)}
         </div>
-        {!isLoading && !list.length && <p className="mt-10 text-center text-muted-foreground">No hackathons match those filters.</p>}
+        {!isLoading && !list.length && (
+          <div className="mt-10 flex flex-col items-center gap-4 py-16 text-center">
+            <div className="clay grid h-20 w-20 place-items-center rounded-3xl">
+              <Search className="h-8 w-8 text-gold-soft opacity-60" />
+            </div>
+            <p className="text-xl font-semibold">No hackathons found</p>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {q ? `No hackathons match "${q}". Try a different search or clear your filters.` : "No hackathons available right now. Check back soon — we sync every 12 hours."}
+            </p>
+            {(q || mode !== "All" || source !== "All") && (
+              <button
+                className="neo-inset rounded-full px-5 py-2.5 text-sm text-muted-foreground transition hover:text-foreground"
+                onClick={() => { setQ(""); setMode("All"); setSource("All"); }}
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

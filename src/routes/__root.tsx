@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/hub/SiteHeader";
+import { SiteFooter } from "@/components/hub/SiteFooter";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -20,17 +21,24 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
+        <p className="font-mono text-xs uppercase tracking-widest text-gold">404</p>
+        <h1 className="mt-4 font-display text-7xl font-bold text-gold-gradient">Lost?</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
-        <div className="mt-6">
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go home
+            Go to Hackathons
+          </Link>
+          <Link
+            to="/auth"
+            className="inline-flex items-center justify-center rounded-full border border-glass-border bg-transparent px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            Sign in
           </Link>
         </div>
       </div>
@@ -87,11 +95,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "HackHub — Thapar's hackathon hub" },
       { name: "description", content: "Every hackathon in one place, AI fit scores and a team builder for Thapar students." },
       { name: "author", content: "HackHub" },
+      { name: "robots", content: "index, follow" },
+      { name: "theme-color", content: "#0d0d1a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "HackHub" },
       { property: "og:title", content: "HackHub — Thapar's hackathon hub" },
       { property: "og:description", content: "Every hackathon in one place, AI fit scores and a team builder for Thapar students." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "HackHub" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@HackHubTIET" },
+      { name: "twitter:title", content: "HackHub — Thapar's hackathon hub" },
+      { name: "twitter:description", content: "Every hackathon in one place, AI fit scores and a team builder for Thapar students." },
     ],
     links: [
       {
@@ -99,6 +115,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/favicon.svg" },
+      { rel: "manifest", href: "/site.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=JetBrains+Mono:wght@400;500&display=swap" },
@@ -112,11 +131,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="overflow-x-hidden">
         {children}
         <Scripts />
       </body>
@@ -143,6 +162,7 @@ function RootComponent() {
       <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6">
         <Outlet />
       </main>
+      <SiteFooter />
       <Toaster />
     </QueryClientProvider>
   );

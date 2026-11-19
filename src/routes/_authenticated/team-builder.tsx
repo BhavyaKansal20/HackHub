@@ -7,6 +7,7 @@ import { Plus, UserCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession, SKILL_SUGGESTIONS } from "@/lib/session";
 import { hackathonsQuery } from "@/lib/hackathons";
+import { contactHref } from "@/lib/safety";
 import { TagInput } from "@/components/hub/TagInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +87,19 @@ function TeamBuilder() {
             interested={myInterests.data?.find((i) => i.post_id === p.id)}
             onInterest={(message) => interest.mutate({ post_id: p.id, message })} />
         ))}
-        {!posts.isLoading && !list.length && <p className="text-muted-foreground">No team calls yet. Be the first.</p>}
+        {!posts.isLoading && !list.length && (
+          <div className="glass col-span-full flex flex-col items-center gap-3 rounded-[2rem] p-10 text-center">
+            <p className="font-semibold text-lg">{tab === "mine" ? "You haven't posted any team calls yet" : "No team calls found"}</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              {tab === "mine"
+                ? "Post what skills your team needs and get matched with interested classmates immediately."
+                : "Be the first to create a team call for an upcoming hackathon!"}
+            </p>
+            <Button variant="gold" size="sm" className="mt-2" onClick={() => setOpen(true)}>
+              <Plus className="h-4 w-4 mr-1" /> Post a team call
+            </Button>
+          </div>
+        )}
       </div>
       <NewPost open={open} onOpenChange={setOpen} userId={user?.id} />
     </div>
@@ -120,7 +133,21 @@ function PostCard({ p, me, focused, interested, onInterest }: { p: any; me: stri
         <div className="clay mt-5 rounded-3xl p-4 text-sm">
           {interested.status === "accepted" ? (
             <div><p className="flex items-center gap-2 font-semibold text-success"><UserCheck className="h-4 w-4" /> You're in! Reach out:</p>
-              {Object.entries(interested.shared_contact ?? {}).map(([k, v]) => <p key={k} className="mt-1 font-mono">{k}: {String(v)}</p>)}</div>
+              {Object.entries(interested.shared_contact ?? {}).map(([k, v]) => {
+                const href = contactHref(k, String(v));
+                return (
+                  <p key={k} className="mt-1 font-mono">
+                    {k}:{" "}
+                    {href ? (
+                      <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined} className="text-gold underline hover:opacity-80">
+                        {String(v)}
+                      </a>
+                    ) : (
+                      String(v)
+                    )}
+                  </p>
+                );
+              })}</div>
           ) : interested.status === "declined" ? <p className="text-muted-foreground">The team lead passed this time.</p> : <p className="text-muted-foreground">Interest sent. Waiting for the team lead.</p>}
         </div>
       ) : p.status === "open" ? (

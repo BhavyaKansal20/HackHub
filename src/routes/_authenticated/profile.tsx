@@ -8,6 +8,7 @@ import { Camera, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { evaluateProfile, type Blueprint } from "@/lib/hub.functions";
 import { SKILL_SUGGESTIONS } from "@/lib/session";
+import { compressPhoto } from "@/lib/safety";
 import { TagInput } from "@/components/hub/TagInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,12 +88,19 @@ function ProfilePage() {
   });
 
   async function upload(file: File): Promise<void> {
-    if (file.size > 3e6) { toast.error("Photo must be under 3 MB"); return; }
-    const path = `${p!.id}/avatar-${Date.now()}.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (error) { toast.error(error.message); return; }
-    const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-    setF((x) => x && { ...x, avatar_url: data!.signedUrl });
+    try {
+      if (file.size > 3e6) { toast.error("Photo must be under 3 MB"); return; }
+      toast.info("Validating and compressing photo…");
+      const compressedBlob = await compressPhoto(file);
+      const path = `${p!.id}/avatar-${Date.now()}.webp`;
+      const { error } = await supabase.storage.from("avatars").upload(path, compressedBlob, { contentType: "image/webp", upsert: true });
+      if (error) { toast.error(error.message); return; }
+      const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      setF((x) => x && { ...x, avatar_url: data!.signedUrl });
+      toast.success("Photo uploaded and optimized!");
+    } catch (err) {
+      toast.error((err as Error).message || "Failed to upload photo");
+    }
   }
 
   if (isLoading || !f || !p) return <div className="glass mt-8 h-96 animate-pulse rounded-[2rem]" />;

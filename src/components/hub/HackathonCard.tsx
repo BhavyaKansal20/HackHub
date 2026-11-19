@@ -6,7 +6,9 @@ export function HackathonCard({ h, recommended }: { h: Hackathon; recommended?: 
   const dl = deadlineLabel(h);
   return (
     <Link to="/hackathons/$id" params={{ id: h.id }}
-      className="group glass flex flex-col overflow-hidden rounded-[1.75rem] p-5 transition hover:-translate-y-1 hover:border-gold/40">
+      className="group glass flex flex-col overflow-hidden rounded-[1.75rem] p-5 transition hover:-translate-y-1 hover:border-gold/40 focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+      aria-label={`${h.title} hackathon${recommended ? " — recommended for you" : ""}`}
+    >
       <div className="flex items-start gap-4">
         <div className="clay grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl">
           {h.image_url ? <img src={h.image_url} alt="" loading="lazy" className="h-full w-full object-cover" /> : <Trophy className="text-gold" />}

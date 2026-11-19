@@ -1,0 +1,25 @@
+{
+  "name": "HackHub — Thapar's Hackathon Hub",
+  "short_name": "HackHub",
+  "description": "Every hackathon in one place, AI fit scores and a team builder for Thapar students.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d1a",
+  "theme_color": "#0d0d1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en-IN"
+}

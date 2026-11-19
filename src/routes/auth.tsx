@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { lovable } from "@/integrations/lovable";
+import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/auth")({
@@ -20,18 +21,46 @@ function AuthPage() {
   const navigate = useNavigate();
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (ready && user) navigate({ to: "/profile" }); }, [ready, user, navigate]);
+
+  useEffect(() => {
+    if (ready && user) navigate({ to: "/profile" });
+  }, [ready, user, navigate]);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session?.user) {
+        navigate({ to: "/profile" });
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [navigate]);
 
   async function google() {
-    setErr(null); setBusy(true);
-    const r = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/auth",
-      extraParams: { hd: "thapar.edu", prompt: "select_account" },
-    });
-    setBusy(false);
-    if (r.error) setErr(/thapar|Database error/i.test(String(r.error.message ?? r.error))
-      ? "Only @thapar.edu accounts can join HackHub. Please pick your university account."
-      : String(r.error.message ?? r.error));
+    setErr(null);
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams: { hd: "thapar.edu", prompt: "select_account" },
+        },
+      });
+      if (error) {
+        const r = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin + "/auth",
+          extraParams: { hd: "thapar.edu", prompt: "select_account" },
+        });
+        if (r?.error) throw r.error;
+      }
+    } catch (e: any) {
+      setBusy(false);
+      setErr(
+        /thapar|Database error/i.test(String(e.message ?? e))
+          ? "Only @thapar.edu accounts can join HackHub. Please pick your university account."
+          : String(e.message ?? e),
+      );
+    }
   }
 
   return (
