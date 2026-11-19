@@ -22,6 +22,21 @@ function AuthPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Check URL parameters for any OAuth redirect errors from Supabase
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const errorDesc = params.get("error_description") || params.get("error");
+    if (errorDesc) {
+      const decoded = decodeURIComponent(errorDesc.replace(/\+/g, " "));
+      setErr(
+        /Database error/i.test(decoded)
+          ? "Database error: Please run the fix SQL in Supabase SQL editor to link the user profile trigger."
+          : decoded,
+      );
+    }
+  }, []);
+
   useEffect(() => {
     if (ready && user) navigate({ to: "/profile" });
   }, [ready, user, navigate]);
