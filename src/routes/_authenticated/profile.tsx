@@ -55,8 +55,8 @@ function ProfilePage() {
     queryKey: ["profile-me"],
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
-      const { data } = await supabase.from("profiles").select("*").eq("id", u.user!.id).single();
-      return data;
+      const { data } = await supabase.from("profiles").select("id,persona,full_name,gender,avatar_url,university,roll_no,branch,current_year,graduating_year,linkedin_url,github_url,portfolio_url,headline,bio,skills,interests,experience,ai_blueprint,ai_evaluated_at,completed").eq("id", u.user!.id).single();
+      return data ? { ...data, email: u.user!.email ?? "" } : null;
     },
   });
   const [f, setF] = useState<Form | null>(null);

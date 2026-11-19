@@ -14,7 +14,7 @@ export const evaluateProfile = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { askJson, githubSignal } = await import("./ai.server");
-    const { data: p, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    const { data: p, error } = await supabase.from("profiles").select("id,persona,full_name,gender,avatar_url,university,roll_no,branch,current_year,graduating_year,linkedin_url,github_url,portfolio_url,headline,bio,skills,interests,experience,ai_blueprint,ai_evaluated_at,completed").eq("id", userId).single();
     if (error || !p) throw new Error("Profile not found");
     const gh = await githubSignal(p.github_url).catch(() => null);
     const { data: hacks } = await supabase.from("hackathons").select("id,title,tags,mode,description").limit(60);

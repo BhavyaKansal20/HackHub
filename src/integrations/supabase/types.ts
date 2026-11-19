@@ -342,6 +342,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_campus_member: { Args: never; Returns: boolean }
       is_post_owner: { Args: { _post: string }; Returns: boolean }
     }
     Enums: {
