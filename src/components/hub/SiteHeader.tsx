@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Bell, LogOut, Menu, X } from "lucide-react";
+import { Bell, LogOut, Menu, X, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/session";
+import { getLocalNotifications } from "@/lib/notifications";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export function SiteHeader() {
   const { user, ready } = useSession();
@@ -15,15 +17,38 @@ export function SiteHeader() {
     queryKey: ["unread", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("read", false);
-      return count ?? 0;
+      let dbCount = 0;
+      try {
+        const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).eq("read", false);
+        dbCount = count ?? 0;
+      } catch {
+        // Fallback to local
+      }
+      const localUnread = getLocalNotifications().filter((n) => !n.read).length;
+      return Math.max(dbCount, localUnread);
     },
+    refetchInterval: 15000,
   });
+
   useEffect(() => {
     if (!user) return;
     const ch = supabase
-      .channel(`notif-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => {
+      .channel(`notif-${user.id}-${Date.now()}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, (payload) => {
+        qc.invalidateQueries({ queryKey: ["unread"] });
+        qc.invalidateQueries({ queryKey: ["notifications"] });
+        const record = payload.new as any;
+        if (record?.title) {
+          toast(record.title, {
+            description: record.body,
+            action: record.link ? {
+              label: "Open",
+              onClick: () => { window.location.href = record.link; }
+            } : undefined,
+          });
+        }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` }, () => {
         qc.invalidateQueries({ queryKey: ["unread"] });
         qc.invalidateQueries({ queryKey: ["notifications"] });
       })
@@ -63,11 +88,12 @@ export function SiteHeader() {
           <div className="ml-auto flex items-center gap-2">
             {ready && user ? (
               <>
-                <Link to="/notifications" className="relative grid h-9 w-9 place-items-center rounded-full glass" aria-label="Notifications">
+                <Link to="/notifications" className="relative grid h-9 w-9 place-items-center rounded-full glass transition hover:border-gold/50" aria-label="Notifications">
                   <Bell className="h-4 w-4" />
-                  {!!unread.data && (
-                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-gold-gradient px-1 font-mono text-[10px] text-primary-foreground">
-                      {unread.data}
+                  {!!unread.data && unread.data > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-gradient px-1 font-mono text-[10px] font-bold text-background shadow-md">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
+                      <span className="relative">{unread.data}</span>
                     </span>
                   )}
                 </Link>

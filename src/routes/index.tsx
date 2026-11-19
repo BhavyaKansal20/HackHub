@@ -17,6 +17,7 @@ import { hackathonsQuery } from "@/lib/hackathons";
 import { HackathonCard } from "@/components/hub/HackathonCard";
 import { FlagshipEventModal } from "@/components/hub/FlagshipEventModal";
 import { useSession } from "@/lib/session";
+import { ensureHackathonNotifications } from "@/lib/notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,12 @@ export function Index() {
 
   const recIds = new Set(((blueprint.data?.ai_blueprint as any)?.recommended_hackathon_ids ?? []) as string[]);
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      ensureHackathonNotifications(data);
+    }
+  }, [data]);
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("All");
   const [mode, setMode] = useState<(typeof MODES)[number]>("All");
   const [source, setSource] = useState("All");

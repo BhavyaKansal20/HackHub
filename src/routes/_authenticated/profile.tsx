@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Camera, Sparkles, Copy, Share2, Users, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { evaluateProfile, type Blueprint } from "@/lib/hub.functions";
+import { sendNotification } from "@/lib/notifications";
 import { SKILL_SUGGESTIONS } from "@/lib/session";
 import { compressPhoto } from "@/lib/safety";
 import { ImageCropDialog } from "@/components/hub/ImageCropDialog";
@@ -78,7 +79,21 @@ function ProfilePage() {
 
   const evaluate = useMutation({
     mutationFn: () => evalFn() as Promise<Blueprint>,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["profile-me"] }); qc.invalidateQueries({ queryKey: ["my-blueprint"] }); toast.success("Blueprint updated"); },
+    onSuccess: (bp) => {
+      qc.invalidateQueries({ queryKey: ["profile-me"] });
+      qc.invalidateQueries({ queryKey: ["my-blueprint"] });
+      toast.success("Blueprint updated");
+      if (p?.id) {
+        sendNotification({
+          userId: p.id,
+          kind: "ai_blueprint",
+          title: "⚡ Developer DNA Blueprint Updated",
+          body: `HACKBOT generated your updated skills blueprint with score ${bp?.score || 85}/100.`,
+          link: "/profile",
+          showToast: false,
+        });
+      }
+    },
     onError: (e) => toast.error((e as Error).message),
   });
   const save = useMutation({

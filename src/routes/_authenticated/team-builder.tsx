@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession, SKILL_SUGGESTIONS } from "@/lib/session";
 import { hackathonsQuery } from "@/lib/hackathons";
 import { contactHref } from "@/lib/safety";
+import { sendNotification, broadcastNotification } from "@/lib/notifications";
 import { TagInput } from "@/components/hub/TagInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,9 +57,20 @@ function TeamBuilder() {
     queryFn: async () => (await supabase.from("team_interests").select("*").eq("user_id", user!.id)).data ?? [],
   });
   const interest = useMutation({
-    mutationFn: async ({ post_id, message }: { post_id: string; message: string }) => {
+    mutationFn: async ({ post_id, owner_id, post_title, message }: { post_id: string; owner_id?: string; post_title?: string; message: string }) => {
       const { error } = await supabase.from("team_interests").insert({ post_id, user_id: user!.id, message: message.slice(0, 1000) || null });
       if (error) throw error;
+      if (owner_id && owner_id !== user!.id) {
+        await sendNotification({
+          userId: owner_id,
+          actorId: user!.id,
+          kind: "team_interest",
+          title: `📩 New Team Application`,
+          body: `${user?.email?.split("@")[0] || "A student"} expressed interest in "${post_title || "your team"}": "${message.slice(0, 120)}"`,
+          link: `/team-builder?post=${post_id}`,
+          showToast: false,
+        });
+      }
     },
     onSuccess: () => { toast.success("Interest sent — the team lead has been notified"); qc.invalidateQueries({ queryKey: ["my-interests"] }); },
     onError: (e) => toast.error((e as Error).message),
@@ -85,7 +97,7 @@ function TeamBuilder() {
         {list.map((p) => (
           <PostCard key={p.id} p={p as any} me={user?.id} focused={p.id === focus}
             interested={myInterests.data?.find((i) => i.post_id === p.id)}
-            onInterest={(message) => interest.mutate({ post_id: p.id, message })} />
+            onInterest={(message) => interest.mutate({ post_id: p.id, owner_id: p.owner_id, post_title: p.title, message })} />
         ))}
         {!posts.isLoading && !list.length && (
           <div className="glass col-span-full flex flex-col items-center gap-3 rounded-[2rem] p-10 text-center">
@@ -211,6 +223,17 @@ function ShareDialog({ interest, onClose }: { interest: any; onClose: () => void
     if (!Object.keys(contact).length) { toast.error("Share at least one way to reach you"); return; }
     const { error } = await supabase.from("team_interests").update({ status: "accepted", shared_contact: contact }).eq("id", interest.id);
     if (error) { toast.error(error.message); return; }
+    if (interest?.user_id) {
+      await sendNotification({
+        userId: interest.user_id,
+        actorId: user!.id,
+        kind: "team_accepted",
+        title: "🎉 Team Application Accepted!",
+        body: `Congratulations! Your team application was accepted. The team lead has shared their contact details with you.`,
+        link: `/team-builder?post=${interest.post_id}`,
+        showToast: true,
+      });
+    }
     toast.success("Accepted — they've been notified with your contact"); onClose();
   }
   return (
@@ -258,8 +281,19 @@ function NewPost({ open, onOpenChange, userId }: { open: boolean; onOpenChange: 
       const { error } = await supabase.from("team_posts").insert({ ...parsed.data, owner_id: userId! });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Published — matching students are being notified"); onOpenChange(false); qc.invalidateQueries({ queryKey: ["team-posts"] });
-      setF({ title: "", description: "", skills_needed: [], roles_needed: [], spots: "2", commitment: "", hackathon_id: "" }); },
+    onSuccess: async () => {
+      toast.success("Published — matching students are being notified");
+      await broadcastNotification({
+        title: `🤝 New Team Call: ${f.title}`,
+        body: `Looking for ${f.roles_needed.join(", ") || "teammates"} (${f.spots} spots open)`,
+        kind: "team_post",
+        link: "/team-builder",
+        actorId: userId,
+      });
+      onOpenChange(false);
+      qc.invalidateQueries({ queryKey: ["team-posts"] });
+      setF({ title: "", description: "", skills_needed: [], roles_needed: [], spots: "2", commitment: "", hackathon_id: "" });
+    },
     onError: (e) => toast.error((e as Error).message),
   });
   return (
