@@ -10,5 +10,5 @@
 - [ ] Launch polish: mobile navigation, overflow, metadata, favicon, footer and legal pages
 - [ ] Security hardening: upload validation, safe links, dependency updates, error handling
 - [ ] Dry run: public and signed-in flows, mobile layouts, permissions and security report
-- [ ] Legal contact: awaiting owner’s email
+- [x] Legal contact: multimodexai@gmail.com confirmed
 - [ ] Rate limiting: awaiting approval of an ad-hoc approach; no standard backend primitive

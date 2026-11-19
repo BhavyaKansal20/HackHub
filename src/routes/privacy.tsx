@@ -1,0 +1,23 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { pageHead } from "@/lib/page-head";
+
+export const Route = createFileRoute("/privacy")({
+  head: () => pageHead("Privacy policy — HackHub", "How HackHub handles your Thapar account, profile, team activity and visitor analytics.", "/privacy"),
+  component: Privacy,
+});
+function Privacy() {
+  return <article className="legal-page mx-auto max-w-3xl py-8">
+    <p className="text-sm text-gold">Last updated: 19 November 2026</p><h1 className="mt-3 text-4xl font-bold sm:text-5xl">Privacy policy</h1>
+    <p>HackHub is an independent student platform for Thapar students and researchers. This policy explains what we collect and how we use it.</p>
+    <h2>Your account and profile</h2><p>Google sign-in provides your account identifier, institutional email, name and profile photo. We allow only @thapar.edu accounts. Lovable Cloud handles authentication and stores your account and profile. We do not receive your Google password.</p>
+    <p>Your profile includes the information you submit: photo, name, gender, university, roll number, field of study, study and graduation years, professional links, skills, interests and experience. Signed-in campus members can view profile information, including these academic details and your blueprint. Your account email is not exposed through profile browsing. Do not include confidential information in your bio or posts.</p>
+    <h2>AI evaluations</h2><p>For your skills blueprint and hackathon fit, we send your skills, experience, study information, submitted professional links, public GitHub repository information and relevant hackathon details to AI models through Lovable’s AI service. We store the resulting blueprint and fit scores. Your account email, roll number, gender and uploaded photo are not included in those evaluation prompts. AI results may be inaccurate; they do not determine admission or university decisions.</p>
+    <h2>Teams and contact sharing</h2><p>Team posts and the poster’s profile are visible to signed-in campus members. Interest requests are visible to the applicant and team lead. Contact information selected by a team lead is shared with the accepted applicant. Notifications are private to their recipient. A recipient may retain information you choose to share; HackHub cannot recall copies outside the service.</p>
+    <h2>Photos and external services</h2><p>Uploaded profile photos are compressed and stored in private Lovable Cloud storage. Photo links can be viewed by anyone holding their signed link until it expires; avoid sharing private photos. Google processes sign-in. Public GitHub information is requested from GitHub. Hackathon registration takes place on the publisher’s site and follows its own privacy policy. Visiting external sites sends information such as your network address to those sites.</p>
+    <h2>Visitor analytics</h2><p>Lovable’s analytics uses no cookies, stores nothing on your device, does not keep IP addresses and does not identify visitors. Lovable collects this data for us. <a href="https://lovable.dev/privacy" target="_blank" rel="noreferrer">Lovable’s privacy policy</a> explains how it handles it.</p>
+    <p>With visitor analytics and click tracking enabled, it records pages visited, where visitors came from, country, browser, operating system, device type, time on page, page loading speed, errors, and clicks on buttons and links. This site has no analytics consent banner, so these records are collected for every visitor. Detailed data is kept for 90 days and daily summaries for a year. The editor preview is not counted.</p>
+    <h2>Browser storage and security</h2><p>Sign-in session tokens are stored in your browser to keep you signed in. Signing out clears the active session. Access rules restrict changes to the proper account or team lead. No system is completely secure; do not share session tokens or use a shared browser without signing out.</p>
+    <h2>Retention and your choices</h2><p>Account and activity data is retained while your account is active and as needed to operate the service. You can edit your profile and remove your team posts. For access, correction or deletion requests, email <a href="mailto:multimodexai@gmail.com">multimodexai@gmail.com</a> from your registered institutional account. We may need to verify ownership before acting. Backup or legally required records may remain after removal.</p>
+    <h2>Questions and changes</h2><p>Contact <a href="mailto:multimodexai@gmail.com">multimodexai@gmail.com</a> with privacy concerns. We will update the date above when this policy changes.</p>
+  </article>;
+}
