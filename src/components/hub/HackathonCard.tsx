@@ -163,14 +163,16 @@ export function HackathonCard({ h, recommended }: { h: Hackathon; recommended?: 
           >
             <Heart className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} />
           </button>
-          <Link
-            to="/hackathons/$id"
-            params={{ id: h.id }}
-            aria-label="View details"
+          <a
+            href={h.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open official ${h.source} website`}
             className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition hover:bg-accent/60 hover:text-gold"
+            onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-3.5 w-3.5" />
-          </Link>
+          </a>
         </div>
       </div>
     </article>
