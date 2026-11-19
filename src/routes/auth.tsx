@@ -91,7 +91,7 @@ function AuthPage() {
     <div className="mx-auto mt-16 max-w-md">
       <div className="glass rounded-[2rem] p-10 text-center">
         <img
-          src="/HackHubLogo.svg"
+          src="/HackHubLogo.png"
           alt="HackHub"
           className="mx-auto mb-6 h-24 sm:h-28 w-auto object-contain drop-shadow-2xl"
         />

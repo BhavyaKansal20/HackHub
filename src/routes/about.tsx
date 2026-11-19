@@ -29,7 +29,7 @@ function AboutPage() {
       {/* Hero Header */}
       <div className="relative overflow-hidden rounded-[2.5rem] glass px-6 py-12 text-center md:px-12 md:py-16">
         <img
-          src="/HackHubLogo.svg"
+          src="/HackHubLogo.png"
           alt="HackHub"
           className="mx-auto mb-6 h-24 sm:h-28 w-auto object-contain drop-shadow-2xl"
         />

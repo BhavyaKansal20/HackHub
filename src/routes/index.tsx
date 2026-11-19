@@ -114,7 +114,7 @@ export function Index() {
       {/* Hero Spotlight Header */}
       <section className="relative overflow-hidden rounded-[2.5rem] glass px-6 py-12 text-center md:px-12 md:py-16">
         <img
-          src="/HackHubLogo.svg"
+          src="/HackHubLogo.png"
           alt="HackHub"
           className="mx-auto mb-6 h-20 sm:h-24 w-auto object-contain drop-shadow-xl"
         />

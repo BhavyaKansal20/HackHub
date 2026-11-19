@@ -56,7 +56,43 @@ export async function fetchDevfolio(): Promise<HackathonRow[]> {
   return out.filter((h) => (seen.has(h.external_id) ? false : (seen.add(h.external_id), true)));
 }
 
-export async function fetchAll() {
-  const [a, b] = await Promise.allSettled([fetchDevpost(), fetchDevfolio()]);
-  return [...(a.status === "fulfilled" ? a.value : []), ...(b.status === "fulfilled" ? b.value : [])];
+import { VERIFIED_HACKATHONS } from "./hackathons-catalog";
+
+export async function fetchAll(): Promise<HackathonRow[]> {
+  const [devpostRes, devfolioRes] = await Promise.allSettled([fetchDevpost(), fetchDevfolio()]);
+  const liveRows: HackathonRow[] = [
+    ...(devpostRes.status === "fulfilled" ? devpostRes.value : []),
+    ...(devfolioRes.status === "fulfilled" ? devfolioRes.value : []),
+  ];
+
+  // Map catalog to HackathonRow schema
+  const catalogRows: HackathonRow[] = VERIFIED_HACKATHONS.map((h) => ({
+    source: h.source,
+    external_id: h.external_id,
+    title: h.title,
+    organizer: h.organizer,
+    url: h.url,
+    image_url: h.image_url,
+    mode: h.mode,
+    location: h.location,
+    starts_at: h.starts_at,
+    ends_at: h.ends_at,
+    reg_ends_at: h.reg_ends_at,
+    dates_label: h.dates_label,
+    prize: h.prize,
+    participants: h.participants,
+    tags: h.tags,
+    description: h.description,
+  }));
+
+  // Deduplicate by source + external_id, preferring verified rich catalog entries
+  const map = new Map<string, HackathonRow>();
+  for (const r of liveRows) {
+    map.set(`${r.source}:${r.external_id}`, r);
+  }
+  for (const r of catalogRows) {
+    map.set(`${r.source}:${r.external_id}`, r);
+  }
+
+  return Array.from(map.values());
 }

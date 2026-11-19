@@ -6,7 +6,7 @@ export function SiteFooter() {
     <div className="mx-auto grid max-w-6xl gap-6 sm:grid-cols-[minmax(0,1fr)_auto]">
       <div className="min-w-0">
         <Link to="/" className="inline-flex items-center gap-3 font-display text-3xl font-bold">
-          <img src="/HackHubLogo.svg" alt="HackHub" className="h-10 sm:h-12 w-auto object-contain drop-shadow-sm" />
+          <img src="/HackHubLogo.png" alt="HackHub" className="h-10 sm:h-12 w-auto object-contain drop-shadow-sm" />
           <span>Hack<span className="text-gold">Hub</span></span>
         </Link>
         <p className="mt-2 text-sm text-muted-foreground">For the builders at Thapar.</p>

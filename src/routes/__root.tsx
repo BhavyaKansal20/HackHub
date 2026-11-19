@@ -22,7 +22,7 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <img
-          src="/HackHubLogo.svg"
+          src="/HackHubLogo.png"
           alt="HackHub"
           className="mx-auto mb-6 h-16 sm:h-20 w-auto object-contain drop-shadow-md"
         />
@@ -62,7 +62,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <img
-          src="/HackHubLogo.svg"
+          src="/HackHubLogo.png"
           alt="HackHub"
           className="mx-auto mb-6 h-16 sm:h-20 w-auto object-contain drop-shadow-md"
         />
@@ -124,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/HackHubLogo.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/HackHubLogo.png", type: "image/png" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "apple-touch-icon", href: "/HackHubLogo.png" },
       { rel: "manifest", href: "/site.webmanifest" },

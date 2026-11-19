@@ -10,7 +10,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`📡 Fetching live hackathons from Devpost and Devfolio...`);
+  console.log(`📡 Fetching verified hackathons from Devfolio, Unstop, Devpost, Hack2Skill, HackerEarth, MLH, Reskilll, HackIndia, HackerRank, All Hackathons...`);
   const rows = await fetchAll();
   console.log(`✅ Fetched ${rows.length} hackathons!`);
 
