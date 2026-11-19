@@ -45,10 +45,17 @@ export async function checkLocalAIHealth(): Promise<{
     clearTimeout(timer);
 
     if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const installedModels: string[] = (data.data || []).map((m: any) => m.id);
+      const activeModel = installedModels.length > 0 ? installedModels[0] : LOCAL_AI_CONFIG.model;
+      const hasInstalled = installedModels.length > 0;
+
       return {
-        online: true,
-        model: LOCAL_AI_CONFIG.model,
-        provider: "Ollama Local Daemon (127.0.0.1:11434)",
+        online: hasInstalled,
+        model: activeModel,
+        provider: hasInstalled
+          ? `Ollama Local (${activeModel})`
+          : "Ollama Daemon Active (Standby)",
       };
     }
   } catch {
@@ -72,6 +79,23 @@ export async function callLocalAI(
   const endpoint = `${LOCAL_AI_CONFIG.baseUrl}/chat/completions`;
 
   try {
+    // Dynamically auto-detect active model if available
+    let targetModel = LOCAL_AI_CONFIG.model;
+    try {
+      const mRes = await fetch(`${LOCAL_AI_CONFIG.baseUrl}/models`, {
+        signal: AbortSignal.timeout(1500),
+      });
+      if (mRes.ok) {
+        const mData = await mRes.json();
+        const ids: string[] = (mData.data || []).map((m: any) => m.id);
+        if (ids.length > 0) {
+          targetModel = ids.includes(targetModel) ? targetModel : ids[0];
+        }
+      }
+    } catch {
+      // ignore, fall back to configured model
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), LOCAL_AI_CONFIG.timeoutMs);
 
@@ -82,7 +106,7 @@ export async function callLocalAI(
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: LOCAL_AI_CONFIG.model,
+        model: targetModel,
         messages: [
           ...messages,
           ...(jsonMode
@@ -103,7 +127,7 @@ export async function callLocalAI(
     clearTimeout(timer);
 
     if (!res.ok) {
-      console.warn(`[HACKBOT] Local LLM responded with status ${res.status}. Falling back to internal engine.`);
+      console.warn(`[HACKBOT] Local LLM (${targetModel}) responded with status ${res.status}. Falling back to internal engine.`);
       return null;
     }
 
